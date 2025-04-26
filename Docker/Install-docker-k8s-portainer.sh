@@ -73,29 +73,35 @@ else
 fi
 
 # 5) Kubernetes (kubeadm, kubelet, kubectl)
-echo "🔧 Verificando Kubernetes components..."
+echo "🔧 Verificando componentes do Kubernetes..."
 if ! command -v kubeadm &>/dev/null; then
-  echo "▶️ Instalando componentes do Kubernetes..."
+  echo "▶️ Instalando Kubernetes..."
   
-  echo "✔️ Removendo repositórios antigos do Kubernetes (packages.cloud.google.com)"
-  find /etc/apt/sources.list.d/ -type f -exec grep -l "cloud.google.com/apt" {} \; \
-    | xargs -r rm -f
-  rm -f /etc/apt/sources.list.d/kubernetes.list || true
+  # Remover repositórios antigos (incluindo possíveis entradas em sources.list)
+  echo "✔️ Removendo repositórios Kubernetes antigos..."
+  sed -i.bak '/cloud.google.com\/apt/d' /etc/apt/sources.list || true
+  find /etc/apt/sources.list.d/ -type f -name '*.list' -exec sed -i '/cloud.google.com\/apt/d' {} + || true
+  find /etc/apt/sources.list.d/ -type f -name '*.list' -exec rm -f {} +
 
+  # Registrar chave GPG de forma moderna
   echo "✔️ Registrando chave GPG do Kubernetes..."
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
     | gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
 
+  # Adicionar repositório oficial
   echo "✔️ Adicionando repositório oficial apt.kubernetes.io"
-  echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" \
-    > /etc/apt/sources.list.d/kubernetes.list
+  cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+# Kubernetes official repository
+deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
 
+  # Atualizar e instalar pacotes
   apt-get update
   apt-get install -y kubelet kubeadm kubectl
   apt-mark hold kubelet kubeadm kubectl
   echo "✔️ Kubernetes instalado com sucesso."
 else
-  echo "✔️ Kubernetes components já estão instalados."
+  echo "✔️ Kubernetes já está instalado."
 fi
 
 # 6) Desabilitar swap (requisito kubeadm)
@@ -112,11 +118,12 @@ fi
 echo "🔧 Configurando parâmetros de rede..."
 modprobe br_netfilter || true
 cat <<EOF >/etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
 EOF
 sysctl --system
 
+# Finalização
 echo "✅ Instalação concluída!"
 echo " - Docker, Portainer e Kubernetes prontos para uso."
 echo " - Para iniciar um cluster de teste: kubeadm init"
