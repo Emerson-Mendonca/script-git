@@ -92,7 +92,7 @@ if ! command -v kubeadm &>/dev/null; then
   echo "✔️ Adicionando repositório oficial apt.kubernetes.io"
   cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 # Kubernetes official repository
-deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+deb http://packages.cloud.google.com/apt/ kubernetes-xenial main
 EOF
 
   # Atualizar e instalar pacotes
