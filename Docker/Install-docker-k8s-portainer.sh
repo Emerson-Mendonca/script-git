@@ -76,11 +76,20 @@ fi
 echo "🔧 Verificando Kubernetes components..."
 if ! command -v kubeadm &>/dev/null; then
   echo "▶️ Instalando componentes do Kubernetes..."
-  rm -f /etc/apt/sources.list.d/kubernetes.list
+  
+  echo "✔️ Removendo repositórios antigos do Kubernetes (packages.cloud.google.com)"
+  find /etc/apt/sources.list.d/ -type f -exec grep -l "cloud.google.com/apt" {} \; \
+    | xargs -r rm -f
+  rm -f /etc/apt/sources.list.d/kubernetes.list || true
+
+  echo "✔️ Registrando chave GPG do Kubernetes..."
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
     | gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
+
+  echo "✔️ Adicionando repositório oficial apt.kubernetes.io"
   echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" \
     > /etc/apt/sources.list.d/kubernetes.list
+
   apt-get update
   apt-get install -y kubelet kubeadm kubectl
   apt-mark hold kubelet kubeadm kubectl
