@@ -42,8 +42,7 @@ if ! command -v docker &>/dev/null; then
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
     | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   echo \
-    "deb [arch=$ARCH signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-    https://download.docker.com/linux/ubuntu $CODENAME stable" \
+    "deb [arch=$ARCH signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $CODENAME stable" \
     > /etc/apt/sources.list.d/docker.list
   apt-get update
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
@@ -76,12 +75,11 @@ fi
 echo "🔧 Verificando componentes do Kubernetes..."
 if ! command -v kubeadm &>/dev/null; then
   echo "▶️ Instalando Kubernetes..."
-  
-  # Remover repositórios antigos (incluindo possíveis entradas em sources.list)
-  echo "✔️ Removendo repositórios Kubernetes antigos..."
-  sed -i.bak '/cloud.google.com\/apt/d' /etc/apt/sources.list || true
-  find /etc/apt/sources.list.d/ -type f -name '*.list' -exec sed -i '/cloud.google.com\/apt/d' {} + || true
-  find /etc/apt/sources.list.d/ -type f -name '*.list' -exec rm -f {} +
+
+  # Remover repositórios antigos
+  echo "✔️ Limpando repositórios antigos do Kubernetes..."
+  rm -f /etc/apt/sources.list.d/kubernetes* || true
+  sed -i.bak '/cloud.google.com\/apt/d;/kubernetes-xenial/d' /etc/apt/sources.list || true
 
   # Registrar chave GPG de forma moderna
   echo "✔️ Registrando chave GPG do Kubernetes..."
@@ -92,7 +90,7 @@ if ! command -v kubeadm &>/dev/null; then
   echo "✔️ Adicionando repositório oficial apt.kubernetes.io"
   cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 # Kubernetes official repository
-deb http://packages.cloud.google.com/apt/ kubernetes-xenial main
+deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 
   # Atualizar e instalar pacotes
