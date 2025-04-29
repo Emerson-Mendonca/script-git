@@ -79,3 +79,4 @@ echo "Verificação final:"
 docker ps -a | grep -q portainer && echo "Portainer: Container presente"
 echo -e "Acesso ao Portainer: http://$(hostname -I | awk '{print $1}'):9000"
 echo "----------------------------------------------------"
+
