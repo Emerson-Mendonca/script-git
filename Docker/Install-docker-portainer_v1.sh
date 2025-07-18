@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #--------------------------------------------------
-# Script de instalação: Docker + Portainer + Kubernetes (kubeadm)
+# Script de instalação: Docker + Portainer
 # Suporta Ubuntu/Debian (20.04, 22.04, etc.)
 # Execute como root ou com sudo:
 #   chmod +x install-docker-k8s-portainer.sh
